@@ -9,6 +9,9 @@ export const CONTRACT_ADDRESS =
 export const PRIVY_APP_ID =
   process.env.NEXT_PUBLIC_PRIVY_APP_ID ?? "";
 
+export const PAYMASTER_URL =
+  process.env.NEXT_PUBLIC_PAYMASTER_URL ?? "";
+
 export const FRUIT_SLASH_ABI = [
   {
     inputs: [],

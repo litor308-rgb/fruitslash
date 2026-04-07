@@ -1,38 +1,59 @@
 "use client";
 
-import { useReadContract } from "wagmi";
-import { CONTRACT_ADDRESS, FRUIT_SLASH_ABI } from "@/lib/constants";
+import { useCallback, useEffect, useState } from "react";
 
 export interface LeaderboardEntry {
   player: string;
   score: number;
-  timestamp: number;
   rank: number;
 }
 
-export function useLeaderboard(limit = 20) {
-  const { data, isLoading, error, refetch } = useReadContract({
-    address: CONTRACT_ADDRESS,
-    abi: FRUIT_SLASH_ABI,
-    functionName: "getTopScores",
-    args: [BigInt(limit)],
-  });
+export function useLeaderboard(limit = 50) {
+  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  const entries: LeaderboardEntry[] = data
-    ? (data as Array<{ player: string; score: bigint; timestamp: bigint }>).map(
-        (entry, idx) => ({
-          player: entry.player,
-          score: Number(entry.score),
-          timestamp: Number(entry.timestamp),
-          rank: idx + 1,
-        }),
-      )
-    : [];
+  const fetchLeaderboard = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/leaderboard?limit=${limit}`);
+      if (!res.ok) throw new Error("Failed to fetch leaderboard");
+      const data = await res.json();
+      setEntries(data.entries);
+    } catch (e: any) {
+      setError(e);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [limit]);
+
+  useEffect(() => {
+    fetchLeaderboard();
+  }, [fetchLeaderboard]);
+
+  const submitScore = useCallback(async (player: string, score: number) => {
+    try {
+      const res = await fetch("/api/leaderboard", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ player, score }),
+      });
+      const data = await res.json();
+      if (data.updated) {
+        await fetchLeaderboard();
+      }
+      return data;
+    } catch {
+      return { updated: false };
+    }
+  }, [fetchLeaderboard]);
 
   return {
     entries,
     isLoading,
     error,
-    refetch,
+    refetch: fetchLeaderboard,
+    submitScore,
   };
 }

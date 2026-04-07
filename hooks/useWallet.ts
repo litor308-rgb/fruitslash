@@ -1,15 +1,27 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { CONTRACT_ADDRESS, FRUIT_SLASH_ABI } from "@/lib/constants";
+import { CONTRACT_ADDRESS, FRUIT_SLASH_ABI, PAYMASTER_URL } from "@/lib/constants";
 import { decodeEventLog } from "viem";
+import { base } from "wagmi/chains";
 
 const IS_DEMO = CONTRACT_ADDRESS === "0x0000000000000000000000000000000000000000";
 
 export function useWallet() {
   const { address, isConnected, chain } = useAccount();
   const [mintedTokenId, setMintedTokenId] = useState<number | null>(null);
+
+  const paymasterCapabilities = useMemo(() => {
+    if (!PAYMASTER_URL) return undefined;
+    return {
+      [base.id]: {
+        paymasterService: {
+          url: PAYMASTER_URL,
+        },
+      },
+    };
+  }, []);
 
   // --- Reads ---
 
@@ -62,10 +74,10 @@ export function useWallet() {
       address: CONTRACT_ADDRESS,
       abi: FRUIT_SLASH_ABI,
       functionName: "slash",
-    });
-  }, [writeSlash]);
+      ...(paymasterCapabilities ? { capabilities: paymasterCapabilities } : {}),
+    } as any);
+  }, [writeSlash, paymasterCapabilities]);
 
-  // Detect NFT mint from slash receipt
   if (slashReceipt && mintedTokenId === null) {
     try {
       for (const log of slashReceipt.logs) {
@@ -105,8 +117,9 @@ export function useWallet() {
       address: CONTRACT_ADDRESS,
       abi: FRUIT_SLASH_ABI,
       functionName: "checkIn",
-    });
-  }, [writeCheckIn]);
+      ...(paymasterCapabilities ? { capabilities: paymasterCapabilities } : {}),
+    } as any);
+  }, [writeCheckIn, paymasterCapabilities]);
 
   // --- Submit score ---
 
@@ -129,10 +142,11 @@ export function useWallet() {
           abi: FRUIT_SLASH_ABI,
           functionName: "submitScore",
           args: [BigInt(score)],
-        });
+          ...(paymasterCapabilities ? { capabilities: paymasterCapabilities } : {}),
+        } as any);
       }
     },
-    [writeSubmit, highScore],
+    [writeSubmit, highScore, paymasterCapabilities],
   );
 
   // --- Parse check-in data ---

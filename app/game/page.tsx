@@ -1,27 +1,40 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { GameCanvas } from "@/components/game/GameCanvas";
 import { ConnectButton } from "@/components/ui/ConnectButton";
 import { useWallet } from "@/hooks/useWallet";
+import { useLeaderboard } from "@/hooks/useLeaderboard";
 import Link from "next/link";
 
 export default function GamePage() {
   const { authenticated, ready } = useAuth();
   const {
+    address,
     highScore,
     submitScore,
     isSubmitting,
     isSubmitConfirmed,
     refetchHighScore,
   } = useWallet();
+  const { submitScore: submitToRedis } = useLeaderboard();
 
   useEffect(() => {
     if (isSubmitConfirmed) {
       refetchHighScore();
     }
   }, [isSubmitConfirmed, refetchHighScore]);
+
+  const handleScoreSubmit = useCallback(
+    (score: number) => {
+      submitScore(score);
+      if (address) {
+        submitToRedis(address, score);
+      }
+    },
+    [submitScore, submitToRedis, address],
+  );
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -70,10 +83,9 @@ export default function GamePage() {
     <div className="h-screen w-screen bg-game-bg overflow-hidden">
       <GameCanvas
         highScore={highScore}
-        onScoreSubmit={submitScore}
+        onScoreSubmit={handleScoreSubmit}
         isSubmitting={isSubmitting}
       />
-
     </div>
   );
 }

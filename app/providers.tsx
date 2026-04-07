@@ -7,10 +7,12 @@ import { base, baseSepolia } from "wagmi/chains";
 import { PRIVY_APP_ID } from "@/lib/constants";
 import { AuthContext, type AuthState } from "@/hooks/useAuth";
 
+const PAYMASTER_URL = process.env.NEXT_PUBLIC_PAYMASTER_URL;
+
 const wagmiConfig = createConfig({
   chains: [base, baseSepolia],
   transports: {
-    [base.id]: http(),
+    [base.id]: http(PAYMASTER_URL || "https://mainnet.base.org"),
     [baseSepolia.id]: http(),
   },
 });
@@ -37,7 +39,7 @@ function PrivyAuthProvider({ children }: { children: ReactNode }) {
 }
 
 function PrivyLiveProvider({ children }: { children: ReactNode }) {
-  const { PrivyProvider, usePrivy } = require("@privy-io/react-auth");
+  const { PrivyProvider } = require("@privy-io/react-auth");
 
   return (
     <PrivyProvider
