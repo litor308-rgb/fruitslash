@@ -1,0 +1,23 @@
+{
+  "accountAssociation": {
+    "header": "",
+    "payload": "",
+    "signature": ""
+  },
+  "frame": {
+    "version": "1",
+    "name": "FruitSlash",
+    "iconUrl": "https://fruitslash.vercel.app/icon-512.png",
+    "homeUrl": "https://fruitslash.vercel.app",
+    "splashImageUrl": "https://fruitslash.vercel.app/icon-512.png",
+    "splashBackgroundColor": "#1A0A2E",
+    "primaryCategory": "games",
+    "subtitle": "Slash fruits. Score on-chain.",
+    "description": "Swipe to slash fruits, dodge bombs, and climb the on-chain leaderboard. Built on Base with gasless transactions.",
+    "heroImageUrl": "https://fruitslash.vercel.app/icon-512.png",
+    "tagline": "Slash fruits. Score on-chain.",
+    "ogTitle": "FruitSlash | Slash Fruits on Base",
+    "ogDescription": "Slash fruits, dodge bombs, and compete on-chain. Built on Base.",
+    "ogImageUrl": "https://fruitslash.vercel.app/icon-512.png"
+  }
+}
