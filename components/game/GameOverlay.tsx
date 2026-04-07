@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { type GameState } from "@/hooks/useGame";
 import { formatScore } from "@/lib/gameUtils";
 
@@ -97,6 +98,15 @@ export function GameOverlay({
           >
             Play Again
           </button>
+
+          <Link
+            href="/"
+            className="w-full py-3 px-6 bg-white/[0.07] border border-white/[0.12] rounded-xl 
+              text-white/70 font-semibold text-center
+              hover:bg-white/[0.12] active:scale-95 transition-all duration-200"
+          >
+            ← Home
+          </Link>
         </div>
 
         {highScore > 0 && !isNewHighScore && (
