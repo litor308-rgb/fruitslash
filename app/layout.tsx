@@ -42,6 +42,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
+        <meta name="base:app_id" content="69ce8e2f2cecb99f8ef27a8f" />
         <link
           href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Inter:wght@400;500;600;700&display=swap"
           rel="stylesheet"
