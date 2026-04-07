@@ -52,7 +52,7 @@ export function useGame() {
   const [gameState, setGameState] = useState<GameState>("idle");
   const [score, setScore] = useState(0);
   const [combo, setCombo] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(GAME_CONFIG.ROUND_DURATION);
+  const [timeLeft, setTimeLeft] = useState<number>(GAME_CONFIG.ROUND_DURATION);
   const [fruitsSliced, setFruitsSliced] = useState(0);
   const [maxCombo, setMaxCombo] = useState(0);
   const [finalScore, setFinalScore] = useState(0);
