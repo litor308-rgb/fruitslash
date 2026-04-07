@@ -47,7 +47,9 @@ export async function POST() {
     members.sort((a, b) => b.score - a.score);
 
     await redis.del(LEADERBOARD_KEY);
-    await redis.zadd(LEADERBOARD_KEY, ...members);
+    for (const m of members) {
+      await redis.zadd(LEADERBOARD_KEY, { score: m.score, member: m.member });
+    }
 
     return NextResponse.json({
       seeded: members.length,
