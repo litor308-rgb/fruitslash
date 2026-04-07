@@ -68,7 +68,7 @@ export function useGame() {
   const scoreRef = useRef(0);
   const lastComboTimeRef = useRef(0);
   const lastSpawnRef = useRef(0);
-  const timeLeftRef = useRef(GAME_CONFIG.ROUND_DURATION);
+  const timeLeftRef = useRef<number>(GAME_CONFIG.ROUND_DURATION);
   const gameStartRef = useRef(0);
   const canvasSizeRef = useRef({ width: 0, height: 0 });
   const gameStateRef = useRef<GameState>("idle");
