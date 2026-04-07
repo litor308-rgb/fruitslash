@@ -1,17 +1,31 @@
-import { ethers } from "hardhat";
+import { ethers, run, network } from "hardhat";
 
 async function main() {
   const [deployer] = await ethers.getSigners();
   console.log("Deploying FruitSlash with account:", deployer.address);
-  console.log("Balance:", (await ethers.provider.getBalance(deployer.address)).toString());
+  console.log("Network:", network.name);
+  console.log("Balance:", ethers.formatEther(await ethers.provider.getBalance(deployer.address)), "ETH");
 
   const FruitSlash = await ethers.getContractFactory("FruitSlash");
   const fruitSlash = await FruitSlash.deploy();
   await fruitSlash.waitForDeployment();
 
   const address = await fruitSlash.getAddress();
-  console.log("FruitSlash deployed to:", address);
-  console.log("Update NEXT_PUBLIC_CONTRACT_ADDRESS in .env.local with:", address);
+  console.log("\nFruitSlash deployed to:", address);
+  console.log("Set NEXT_PUBLIC_CONTRACT_ADDRESS=" + address + " in .env.local");
+
+  if (network.name === "base") {
+    console.log("\nWaiting for block confirmations...");
+    await fruitSlash.deploymentTransaction()?.wait(5);
+
+    console.log("Verifying on Basescan...");
+    try {
+      await run("verify:verify", { address, constructorArguments: [] });
+      console.log("Verified on Basescan!");
+    } catch (e: any) {
+      console.log("Verification failed:", e.message);
+    }
+  }
 }
 
 main().catch((error) => {

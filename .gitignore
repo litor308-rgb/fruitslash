@@ -1,6 +1,18 @@
 node_modules/
 .next/
-.env.local
-.env
 *.tsbuildinfo
 next-env.d.ts
+
+# Environment / secrets
+.env
+.env.*
+!.env.local.example
+
+# Hardhat
+contracts/artifacts/
+contracts/cache/
+contracts/typechain-types/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -15,25 +15,12 @@ export const FRUIT_SLASH_ABI = [
     stateMutability: "nonpayable",
     type: "constructor",
   },
-  {
-    inputs: [{ internalType: "address", name: "", type: "address" }],
-    name: "highScores",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [{ internalType: "address", name: "", type: "address" }],
-    name: "totalGamesPlayed",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
+  // --- Write functions ---
   {
     inputs: [],
-    name: "totalPlayers",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
+    name: "slash",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -48,6 +35,54 @@ export const FRUIT_SLASH_ABI = [
     name: "submitScore",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  // --- Read functions ---
+  {
+    inputs: [{ internalType: "address", name: "", type: "address" }],
+    name: "highScores",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "address", name: "", type: "address" }],
+    name: "totalSlashes",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "address", name: "", type: "address" }],
+    name: "hasFruitNFT",
+    outputs: [{ internalType: "bool", name: "", type: "bool" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "totalPlayers",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "totalSlashCount",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "address", name: "player", type: "address" }],
+    name: "getCheckInInfo",
+    outputs: [
+      { internalType: "uint256", name: "lastCheckIn", type: "uint256" },
+      { internalType: "uint256", name: "streak", type: "uint256" },
+      { internalType: "uint256", name: "totalCheckIns", type: "uint256" },
+      { internalType: "bool", name: "checkedInToday", type: "bool" },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -74,6 +109,35 @@ export const FRUIT_SLASH_ABI = [
     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
     stateMutability: "view",
     type: "function",
+  },
+  // --- Events ---
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: "address", name: "player", type: "address" },
+      { indexed: false, internalType: "uint256", name: "totalSlashes", type: "uint256" },
+    ],
+    name: "Slashed",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: "address", name: "player", type: "address" },
+      { indexed: false, internalType: "uint256", name: "tokenId", type: "uint256" },
+    ],
+    name: "FruitNFTMinted",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: "address", name: "player", type: "address" },
+      { indexed: false, internalType: "uint256", name: "streak", type: "uint256" },
+      { indexed: false, internalType: "uint256", name: "totalCheckIns", type: "uint256" },
+    ],
+    name: "CheckedIn",
+    type: "event",
   },
   {
     anonymous: false,
