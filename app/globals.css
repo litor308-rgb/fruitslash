@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    overscroll-behavior: none;
+  }
+
+  body {
+    font-family: "Inter", system-ui, sans-serif;
+    overscroll-behavior: none;
+    background: linear-gradient(180deg, #1A0A2E 0%, #2D1B4E 30%, #4A1942 55%, #6B2040 75%, #1A0A2E 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background: rgba(0, 212, 255, 0.3);
+  }
+}
+
+@layer utilities {
+  .text-gradient-fruit {
+    @apply bg-gradient-to-r from-fruit-red via-fruit-orange to-fruit-yellow bg-clip-text text-transparent;
+  }
+
+  .text-gradient-slash {
+    @apply bg-gradient-to-r from-game-accent to-fruit-purple bg-clip-text text-transparent;
+  }
+
+  .glass {
+    @apply bg-white/[0.07] backdrop-blur-xl border border-white/[0.12];
+  }
+
+  .glass-strong {
+    @apply bg-white/[0.12] backdrop-blur-2xl border border-white/[0.18];
+  }
+
+  .glow-accent {
+    box-shadow:
+      0 0 20px rgba(0, 212, 255, 0.15),
+      0 0 60px rgba(0, 212, 255, 0.05);
+  }
+
+  .glow-gold {
+    box-shadow:
+      0 0 20px rgba(255, 215, 0, 0.15),
+      0 0 60px rgba(255, 215, 0, 0.05);
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}

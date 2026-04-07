@@ -1,0 +1,30 @@
+{
+  "name": "FruitSlash",
+  "description": "A fast-paced fruit slashing game on the Base blockchain. Slash fruits, dodge bombs, compete for the top of the on-chain leaderboard, and earn weekly rewards.",
+  "url": "https://fruitslash.base.dev",
+  "category": "Gaming",
+  "chain": "Base",
+  "logo": "/icon-512.png",
+  "ogImage": "/og-image.png",
+  "screenshots": [
+    "/screenshots/gameplay.png",
+    "/screenshots/leaderboard.png",
+    "/screenshots/landing.png"
+  ],
+  "contracts": [
+    {
+      "address": "0xYourContractAddress",
+      "chain": "base",
+      "name": "FruitSlash"
+    }
+  ],
+  "socialLinks": {
+    "twitter": "https://twitter.com/fruitslash",
+    "github": "https://github.com/your-username/fruitslash"
+  },
+  "tags": ["game", "nft", "leaderboard", "competitive", "base"],
+  "wtu": {
+    "description": "Score submissions on-chain",
+    "actions": ["Mint Slash Pass", "Submit High Score"]
+  }
+}
