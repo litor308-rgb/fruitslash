@@ -3,12 +3,12 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAccount } from "wagmi";
 import { Header } from "@/components/ui/Header";
 import { useWallet } from "@/hooks/useWallet";
-import { useAuth } from "@/hooks/useAuth";
 
 export default function LandingPage() {
-  const { authenticated } = useAuth();
+  const { isConnected } = useAccount();
   const router = useRouter();
   const {
     totalPlayers,
@@ -103,7 +103,7 @@ export default function LandingPage() {
           </div>
 
           <div className="flex flex-col items-center gap-3 w-full">
-            {authenticated ? (
+            {isConnected ? (
               <>
                 {/* Check-in */}
                 <button

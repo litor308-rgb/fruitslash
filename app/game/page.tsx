@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useCallback } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAccount } from "wagmi";
 import { GameCanvas } from "@/components/game/GameCanvas";
 import { ConnectButton } from "@/components/ui/ConnectButton";
 import { useWallet } from "@/hooks/useWallet";
@@ -9,7 +9,7 @@ import { useLeaderboard } from "@/hooks/useLeaderboard";
 import Link from "next/link";
 
 export default function GamePage() {
-  const { authenticated, ready } = useAuth();
+  const { isConnected } = useAccount();
   const {
     address,
     highScore,
@@ -50,18 +50,7 @@ export default function GamePage() {
     };
   }, []);
 
-  if (!ready) {
-    return (
-      <div className="h-screen w-screen flex items-center justify-center bg-game-bg">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-3 border-game-accent/30 border-t-game-accent rounded-full animate-spin" />
-          <p className="text-white/40 text-sm">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!authenticated) {
+  if (!isConnected) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-game-bg px-4">
         <div className="flex flex-col items-center gap-6 text-center max-w-sm">
