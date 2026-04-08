@@ -63,9 +63,10 @@ export function useWallet() {
     error: slashError,
   } = useWriteContracts();
 
+  const slashId = typeof slashCallId === "string" ? slashCallId : undefined;
   const { data: slashStatus } = useCallsStatus({
-    id: slashCallId as string,
-    query: { enabled: !!slashCallId, refetchInterval: 1000 },
+    id: slashId as string,
+    query: { enabled: !!slashId, refetchInterval: 1000 },
   });
 
   const isSlashConfirmed = slashStatus?.status === "CONFIRMED";
@@ -109,9 +110,10 @@ export function useWallet() {
     error: checkInError,
   } = useWriteContracts();
 
+  const checkInId = typeof checkInCallId === "string" ? checkInCallId : undefined;
   const { data: checkInStatus } = useCallsStatus({
-    id: checkInCallId as string,
-    query: { enabled: !!checkInCallId, refetchInterval: 1000 },
+    id: checkInId as string,
+    query: { enabled: !!checkInId, refetchInterval: 1000 },
   });
 
   const isCheckInConfirmed = checkInStatus?.status === "CONFIRMED";
@@ -140,9 +142,10 @@ export function useWallet() {
     error: submitError,
   } = useWriteContracts();
 
+  const submitId = typeof submitCallId === "string" ? submitCallId : undefined;
   const { data: submitStatus } = useCallsStatus({
-    id: submitCallId as string,
-    query: { enabled: !!submitCallId, refetchInterval: 1000 },
+    id: submitId as string,
+    query: { enabled: !!submitId, refetchInterval: 1000 },
   });
 
   const isSubmitConfirmed = submitStatus?.status === "CONFIRMED";
@@ -184,7 +187,7 @@ export function useWallet() {
 
     // Slash
     doSlash,
-    isSlashing: isSlashPending || (!!slashCallId && !isSlashConfirmed),
+    isSlashing: isSlashPending || (!!slashId && !isSlashConfirmed),
     isSlashConfirmed,
     slashError,
     mintedTokenId,
@@ -192,7 +195,7 @@ export function useWallet() {
 
     // Check-in
     doCheckIn,
-    isCheckingIn: isCheckInPending || (!!checkInCallId && !isCheckInConfirmed),
+    isCheckingIn: isCheckInPending || (!!checkInId && !isCheckInConfirmed),
     isCheckInConfirmed,
     checkInError,
     checkedInToday,
@@ -202,7 +205,7 @@ export function useWallet() {
 
     // Score
     submitScore,
-    isSubmitting: isSubmitPending || (!!submitCallId && !isSubmitConfirmed),
+    isSubmitting: isSubmitPending || (!!submitId && !isSubmitConfirmed),
     isSubmitConfirmed,
     submitError,
     refetchHighScore,
