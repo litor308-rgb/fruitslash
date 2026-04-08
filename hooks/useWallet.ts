@@ -69,7 +69,7 @@ export function useWallet() {
     query: { enabled: slashId.length > 0, refetchInterval: 1000 },
   });
 
-  const isSlashConfirmed = slashStatus?.status === "CONFIRMED";
+  const isSlashConfirmed = slashStatus?.status === "success";
 
   const doSlash = useCallback(() => {
     if (IS_DEMO) return;
@@ -87,7 +87,7 @@ export function useWallet() {
   }, [writeSlash, capabilities]);
 
   // Detect NFT mint from status receipts
-  if (slashStatus?.status === "CONFIRMED" && mintedTokenId === null && slashStatus.receipts) {
+  if (slashStatus?.status === "success" && mintedTokenId === null && slashStatus.receipts) {
     for (const receipt of slashStatus.receipts) {
       for (const log of receipt.logs) {
         if (log.topics[0] === "0x2f00c5f47720460e13e1e8c498d24a5f225b46e30a0e4a981b72c424a960a9c4") {
@@ -116,7 +116,7 @@ export function useWallet() {
     query: { enabled: checkInId.length > 0, refetchInterval: 1000 },
   });
 
-  const isCheckInConfirmed = checkInStatus?.status === "CONFIRMED";
+  const isCheckInConfirmed = checkInStatus?.status === "success";
 
   const doCheckIn = useCallback(() => {
     if (IS_DEMO) return;
@@ -148,7 +148,7 @@ export function useWallet() {
     query: { enabled: submitId.length > 0, refetchInterval: 1000 },
   });
 
-  const isSubmitConfirmed = submitStatus?.status === "CONFIRMED";
+  const isSubmitConfirmed = submitStatus?.status === "success";
 
   const submitScore = useCallback(
     (score: number) => {
