@@ -3,13 +3,16 @@ import { Providers } from "./providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://fruitslash.vercel.app"),
   title: "FruitSlash | Slash Fruits on Base",
   description:
-    "A fast-paced fruit slashing game on the Base blockchain. Slash fruits, dodge bombs, compete for the top of the leaderboard, and earn rewards.",
+    "A fast-paced fruit slashing game on the Base blockchain. Slash fruits, dodge bombs, compete for the top of the leaderboard.",
   openGraph: {
     title: "FruitSlash | Slash Fruits on Base",
     description:
       "Slash fruits, dodge bombs, and compete on-chain. Built on Base.",
+    url: "https://fruitslash.vercel.app",
+    siteName: "FruitSlash",
     images: [{ url: "/og-image.png", width: 1200, height: 630 }],
     type: "website",
   },

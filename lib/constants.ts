@@ -1,13 +1,10 @@
-import { base, baseSepolia } from "wagmi/chains";
+import { base } from "wagmi/chains";
 
 export const ACTIVE_CHAIN = base;
 
 export const CONTRACT_ADDRESS =
   (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`) ??
   "0x0000000000000000000000000000000000000000";
-
-export const PRIVY_APP_ID =
-  process.env.NEXT_PUBLIC_PRIVY_APP_ID ?? "";
 
 export const PAYMASTER_URL =
   process.env.NEXT_PUBLIC_PAYMASTER_URL ?? "";
