@@ -1,9 +1,8 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { CONTRACT_ADDRESS, FRUIT_SLASH_ABI } from "@/lib/constants";
-import { decodeEventLog } from "viem";
 
 const IS_DEMO = CONTRACT_ADDRESS === "0x0000000000000000000000000000000000000000";
 
@@ -51,10 +50,27 @@ export function useWallet() {
     data: slashHash,
     isPending: isSlashPending,
     error: slashError,
+    isSuccess: slashSent,
   } = useWriteContract();
 
-  const { isLoading: isSlashConfirming, isSuccess: isSlashConfirmed, data: slashReceipt } =
+  const { isSuccess: slashReceiptSuccess } =
     useWaitForTransactionReceipt({ hash: slashHash });
+
+  const isSlashConfirmed = slashSent || slashReceiptSuccess;
+
+  // First slash = NFT mint, detect from hasFruitNFT becoming true
+  useEffect(() => {
+    if (slashSent && !hasFruitNFT) {
+      const timer = setTimeout(() => {
+        refetchNFT().then((result) => {
+          if (result.data) {
+            setMintedTokenId(1);
+          }
+        });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [slashSent, hasFruitNFT, refetchNFT]);
 
   const doSlash = useCallback(() => {
     if (IS_DEMO) return;
@@ -65,23 +81,6 @@ export function useWallet() {
     });
   }, [writeSlash]);
 
-  if (slashReceipt && mintedTokenId === null) {
-    try {
-      for (const log of slashReceipt.logs) {
-        try {
-          const decoded = decodeEventLog({
-            abi: FRUIT_SLASH_ABI,
-            data: log.data,
-            topics: log.topics,
-          });
-          if (decoded.eventName === "FruitNFTMinted") {
-            setMintedTokenId(Number((decoded.args as any).tokenId));
-          }
-        } catch {}
-      }
-    } catch {}
-  }
-
   // --- Check-in ---
 
   const {
@@ -89,10 +88,21 @@ export function useWallet() {
     data: checkInHash,
     isPending: isCheckInPending,
     error: checkInError,
+    isSuccess: checkInSent,
   } = useWriteContract();
 
-  const { isLoading: isCheckInConfirming, isSuccess: isCheckInConfirmed } =
+  const { isSuccess: checkInReceiptSuccess } =
     useWaitForTransactionReceipt({ hash: checkInHash });
+
+  const isCheckInConfirmed = checkInSent || checkInReceiptSuccess;
+
+  // Refetch check-in data after tx sent
+  useEffect(() => {
+    if (checkInSent) {
+      const timer = setTimeout(() => refetchCheckIn(), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [checkInSent, refetchCheckIn]);
 
   const doCheckIn = useCallback(() => {
     if (IS_DEMO) return;
@@ -110,10 +120,13 @@ export function useWallet() {
     data: submitHash,
     isPending: isSubmitPending,
     error: submitError,
+    isSuccess: submitSent,
   } = useWriteContract();
 
-  const { isLoading: isSubmitConfirming, isSuccess: isSubmitConfirmed } =
+  const { isSuccess: submitReceiptSuccess } =
     useWaitForTransactionReceipt({ hash: submitHash });
+
+  const isSubmitConfirmed = submitSent || submitReceiptSuccess;
 
   const submitScore = useCallback(
     (score: number) => {
@@ -146,15 +159,15 @@ export function useWallet() {
     hasFruitNFT: IS_DEMO ? false : !!hasFruitNFT,
 
     doSlash,
-    isSlashing: isSlashPending || isSlashConfirming,
+    isSlashing: isSlashPending,
     isSlashConfirmed,
     slashError,
     mintedTokenId,
     clearMintNotification: () => setMintedTokenId(null),
 
     doCheckIn,
-    isCheckingIn: isCheckInPending || isCheckInConfirming,
-    isCheckInConfirmed,
+    isCheckingIn: isCheckInPending,
+    isCheckInConfirmed: isCheckInConfirmed || checkedInToday,
     checkInError,
     checkedInToday,
     streak,
@@ -162,7 +175,7 @@ export function useWallet() {
     refetchCheckIn,
 
     submitScore,
-    isSubmitting: isSubmitPending || isSubmitConfirming,
+    isSubmitting: isSubmitPending,
     isSubmitConfirmed,
     submitError,
     refetchHighScore,
