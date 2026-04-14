@@ -1,25 +1,15 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
-import { useAccount, useReadContract } from "wagmi";
-import { useWriteContracts, useCallsStatus } from "wagmi/experimental";
-import { CONTRACT_ADDRESS, FRUIT_SLASH_ABI, PAYMASTER_URL } from "@/lib/constants";
-import { encodeFunctionData } from "viem";
+import { useCallback, useState } from "react";
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { CONTRACT_ADDRESS, FRUIT_SLASH_ABI } from "@/lib/constants";
+import { decodeEventLog } from "viem";
 
 const IS_DEMO = CONTRACT_ADDRESS === "0x0000000000000000000000000000000000000000";
 
 export function useWallet() {
   const { address, isConnected, chain } = useAccount();
   const [mintedTokenId, setMintedTokenId] = useState<number | null>(null);
-
-  const capabilities = useMemo(() => {
-    if (!PAYMASTER_URL) return undefined;
-    return {
-      paymasterService: {
-        url: PAYMASTER_URL,
-      },
-    };
-  }, []);
 
   // --- Reads ---
 
@@ -57,117 +47,87 @@ export function useWallet() {
   // --- Slash ---
 
   const {
-    writeContracts: writeSlash,
-    data: slashCallId,
+    writeContract: writeSlash,
+    data: slashHash,
     isPending: isSlashPending,
     error: slashError,
-  } = useWriteContracts();
+  } = useWriteContract();
 
-  const slashId = typeof slashCallId === "string" ? slashCallId : "";
-  const { data: slashStatus } = useCallsStatus({
-    id: slashId,
-    query: { enabled: slashId.length > 0, refetchInterval: 1000 },
-  });
-
-  const isSlashConfirmed = slashStatus?.status === "success";
+  const { isLoading: isSlashConfirming, isSuccess: isSlashConfirmed, data: slashReceipt } =
+    useWaitForTransactionReceipt({ hash: slashHash });
 
   const doSlash = useCallback(() => {
     if (IS_DEMO) return;
     writeSlash({
-      contracts: [
-        {
-          address: CONTRACT_ADDRESS,
-          abi: FRUIT_SLASH_ABI,
-          functionName: "slash",
-          args: [],
-        },
-      ],
-      capabilities,
+      address: CONTRACT_ADDRESS,
+      abi: FRUIT_SLASH_ABI,
+      functionName: "slash",
     });
-  }, [writeSlash, capabilities]);
+  }, [writeSlash]);
 
-  // Detect NFT mint from status receipts
-  if (slashStatus?.status === "success" && mintedTokenId === null && slashStatus.receipts) {
-    for (const receipt of slashStatus.receipts) {
-      for (const log of receipt.logs) {
-        if (log.topics[0] === "0x2f00c5f47720460e13e1e8c498d24a5f225b46e30a0e4a981b72c424a960a9c4") {
-          // FruitNFTMinted event topic
-          try {
-            const tokenId = parseInt(log.data, 16);
-            if (tokenId > 0) setMintedTokenId(tokenId);
-          } catch {}
-        }
+  if (slashReceipt && mintedTokenId === null) {
+    try {
+      for (const log of slashReceipt.logs) {
+        try {
+          const decoded = decodeEventLog({
+            abi: FRUIT_SLASH_ABI,
+            data: log.data,
+            topics: log.topics,
+          });
+          if (decoded.eventName === "FruitNFTMinted") {
+            setMintedTokenId(Number((decoded.args as any).tokenId));
+          }
+        } catch {}
       }
-    }
+    } catch {}
   }
 
   // --- Check-in ---
 
   const {
-    writeContracts: writeCheckIn,
-    data: checkInCallId,
+    writeContract: writeCheckIn,
+    data: checkInHash,
     isPending: isCheckInPending,
     error: checkInError,
-  } = useWriteContracts();
+  } = useWriteContract();
 
-  const checkInId = typeof checkInCallId === "string" ? checkInCallId : "";
-  const { data: checkInStatus } = useCallsStatus({
-    id: checkInId,
-    query: { enabled: checkInId.length > 0, refetchInterval: 1000 },
-  });
-
-  const isCheckInConfirmed = checkInStatus?.status === "success";
+  const { isLoading: isCheckInConfirming, isSuccess: isCheckInConfirmed } =
+    useWaitForTransactionReceipt({ hash: checkInHash });
 
   const doCheckIn = useCallback(() => {
     if (IS_DEMO) return;
     writeCheckIn({
-      contracts: [
-        {
-          address: CONTRACT_ADDRESS,
-          abi: FRUIT_SLASH_ABI,
-          functionName: "checkIn",
-          args: [],
-        },
-      ],
-      capabilities,
+      address: CONTRACT_ADDRESS,
+      abi: FRUIT_SLASH_ABI,
+      functionName: "checkIn",
     });
-  }, [writeCheckIn, capabilities]);
+  }, [writeCheckIn]);
 
   // --- Submit score ---
 
   const {
-    writeContracts: writeSubmit,
-    data: submitCallId,
+    writeContract: writeSubmit,
+    data: submitHash,
     isPending: isSubmitPending,
     error: submitError,
-  } = useWriteContracts();
+  } = useWriteContract();
 
-  const submitId = typeof submitCallId === "string" ? submitCallId : "";
-  const { data: submitStatus } = useCallsStatus({
-    id: submitId,
-    query: { enabled: submitId.length > 0, refetchInterval: 1000 },
-  });
-
-  const isSubmitConfirmed = submitStatus?.status === "success";
+  const { isLoading: isSubmitConfirming, isSuccess: isSubmitConfirmed } =
+    useWaitForTransactionReceipt({ hash: submitHash });
 
   const submitScore = useCallback(
     (score: number) => {
       if (IS_DEMO) return;
       if (!highScore || BigInt(score) > (highScore as bigint)) {
         writeSubmit({
-          contracts: [
-            {
-              address: CONTRACT_ADDRESS,
-              abi: FRUIT_SLASH_ABI,
-              functionName: "submitScore",
-              args: [BigInt(score)],
-            },
-          ],
-          capabilities,
+          address: CONTRACT_ADDRESS,
+          abi: FRUIT_SLASH_ABI,
+          functionName: "submitScore",
+          args: [BigInt(score)],
         });
       }
     },
-    [writeSubmit, highScore, capabilities],
+    [writeSubmit, highScore],
   );
 
   // --- Parse check-in data ---
@@ -185,17 +145,15 @@ export function useWallet() {
     totalPlayers: totalPlayers ? Number(totalPlayers) : IS_DEMO ? 0 : 0,
     hasFruitNFT: IS_DEMO ? false : !!hasFruitNFT,
 
-    // Slash
     doSlash,
-    isSlashing: isSlashPending || (slashId.length > 0 && !isSlashConfirmed),
+    isSlashing: isSlashPending || isSlashConfirming,
     isSlashConfirmed,
     slashError,
     mintedTokenId,
     clearMintNotification: () => setMintedTokenId(null),
 
-    // Check-in
     doCheckIn,
-    isCheckingIn: isCheckInPending || (checkInId.length > 0 && !isCheckInConfirmed),
+    isCheckingIn: isCheckInPending || isCheckInConfirming,
     isCheckInConfirmed,
     checkInError,
     checkedInToday,
@@ -203,9 +161,8 @@ export function useWallet() {
     totalCheckIns,
     refetchCheckIn,
 
-    // Score
     submitScore,
-    isSubmitting: isSubmitPending || (submitId.length > 0 && !isSubmitConfirmed),
+    isSubmitting: isSubmitPending || isSubmitConfirming,
     isSubmitConfirmed,
     submitError,
     refetchHighScore,
