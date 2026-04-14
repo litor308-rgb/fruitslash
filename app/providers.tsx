@@ -6,13 +6,15 @@ import { WagmiProvider, createConfig, http } from "wagmi";
 import { base } from "wagmi/chains";
 import { injected } from "wagmi/connectors";
 
+const PAYMASTER_URL = process.env.NEXT_PUBLIC_PAYMASTER_URL;
+
 const wagmiConfig = createConfig({
   chains: [base],
   connectors: [
     injected(),
   ],
   transports: {
-    [base.id]: http("https://mainnet.base.org"),
+    [base.id]: http(PAYMASTER_URL || "https://mainnet.base.org"),
   },
   ssr: true,
 });
