@@ -5,17 +5,19 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider, createConfig, http } from "wagmi";
 import { base } from "wagmi/chains";
 import { injected } from "wagmi/connectors";
+import { Hex } from "ox";
 
-const PAYMASTER_URL = process.env.NEXT_PUBLIC_PAYMASTER_URL;
+const BUILDER_CODE = process.env.NEXT_PUBLIC_BUILDER_CODE || "";
 
 const wagmiConfig = createConfig({
   chains: [base],
-  connectors: [
-    injected(),
-  ],
+  connectors: [injected()],
   transports: {
-    [base.id]: http(PAYMASTER_URL || "https://mainnet.base.org"),
+    [base.id]: http("https://mainnet.base.org"),
   },
+  ...(BUILDER_CODE
+    ? { dataSuffix: Hex.fromString(BUILDER_CODE) as `0x${string}` }
+    : {}),
   ssr: true,
 });
 

@@ -1,14 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { CONTRACT_ADDRESS, FRUIT_SLASH_ABI } from "@/lib/constants";
+import { useAccount, useReadContract } from "wagmi";
+import { useWriteContracts } from "wagmi/experimental";
+import { CONTRACT_ADDRESS, FRUIT_SLASH_ABI, PAYMASTER_URL } from "@/lib/constants";
 
 const IS_DEMO = CONTRACT_ADDRESS === "0x0000000000000000000000000000000000000000";
 
 export function useWallet() {
   const { address, isConnected, chain } = useAccount();
   const [mintedTokenId, setMintedTokenId] = useState<number | null>(null);
+
+  const capabilities = PAYMASTER_URL
+    ? { paymasterService: { url: PAYMASTER_URL } }
+    : undefined;
 
   // --- Reads ---
 
@@ -43,29 +48,23 @@ export function useWallet() {
     query: { enabled: !!address && !IS_DEMO },
   });
 
-  // --- Slash ---
+  // --- Slash (EIP-5792 wallet_sendCalls + Paymaster) ---
 
   const {
-    writeContract: writeSlash,
-    data: slashHash,
+    writeContracts: writeSlash,
+    data: slashId,
     isPending: isSlashPending,
     error: slashError,
     isSuccess: slashSent,
-  } = useWriteContract();
+  } = useWriteContracts();
 
-  const { isSuccess: slashReceiptSuccess } =
-    useWaitForTransactionReceipt({ hash: slashHash });
+  const isSlashConfirmed = slashSent;
 
-  const isSlashConfirmed = slashSent || slashReceiptSuccess;
-
-  // First slash = NFT mint, detect from hasFruitNFT becoming true
   useEffect(() => {
     if (slashSent && !hasFruitNFT) {
       const timer = setTimeout(() => {
         refetchNFT().then((result) => {
-          if (result.data) {
-            setMintedTokenId(1);
-          }
+          if (result.data) setMintedTokenId(1);
         });
       }, 3000);
       return () => clearTimeout(timer);
@@ -75,28 +74,29 @@ export function useWallet() {
   const doSlash = useCallback(() => {
     if (IS_DEMO) return;
     writeSlash({
-      address: CONTRACT_ADDRESS,
-      abi: FRUIT_SLASH_ABI,
-      functionName: "slash",
+      contracts: [
+        {
+          address: CONTRACT_ADDRESS,
+          abi: FRUIT_SLASH_ABI,
+          functionName: "slash",
+        },
+      ],
+      capabilities,
     });
-  }, [writeSlash]);
+  }, [writeSlash, capabilities]);
 
-  // --- Check-in ---
+  // --- Check-in (EIP-5792 wallet_sendCalls + Paymaster) ---
 
   const {
-    writeContract: writeCheckIn,
-    data: checkInHash,
+    writeContracts: writeCheckIn,
+    data: checkInId,
     isPending: isCheckInPending,
     error: checkInError,
     isSuccess: checkInSent,
-  } = useWriteContract();
+  } = useWriteContracts();
 
-  const { isSuccess: checkInReceiptSuccess } =
-    useWaitForTransactionReceipt({ hash: checkInHash });
+  const isCheckInConfirmed = checkInSent;
 
-  const isCheckInConfirmed = checkInSent || checkInReceiptSuccess;
-
-  // Refetch check-in data after tx sent
   useEffect(() => {
     if (checkInSent) {
       const timer = setTimeout(() => refetchCheckIn(), 3000);
@@ -107,40 +107,47 @@ export function useWallet() {
   const doCheckIn = useCallback(() => {
     if (IS_DEMO) return;
     writeCheckIn({
-      address: CONTRACT_ADDRESS,
-      abi: FRUIT_SLASH_ABI,
-      functionName: "checkIn",
+      contracts: [
+        {
+          address: CONTRACT_ADDRESS,
+          abi: FRUIT_SLASH_ABI,
+          functionName: "checkIn",
+        },
+      ],
+      capabilities,
     });
-  }, [writeCheckIn]);
+  }, [writeCheckIn, capabilities]);
 
-  // --- Submit score ---
+  // --- Submit score (EIP-5792 wallet_sendCalls + Paymaster) ---
 
   const {
-    writeContract: writeSubmit,
-    data: submitHash,
+    writeContracts: writeSubmit,
+    data: submitId,
     isPending: isSubmitPending,
     error: submitError,
     isSuccess: submitSent,
-  } = useWriteContract();
+  } = useWriteContracts();
 
-  const { isSuccess: submitReceiptSuccess } =
-    useWaitForTransactionReceipt({ hash: submitHash });
-
-  const isSubmitConfirmed = submitSent || submitReceiptSuccess;
+  const isSubmitConfirmed = submitSent;
 
   const submitScore = useCallback(
     (score: number) => {
       if (IS_DEMO) return;
       if (!highScore || BigInt(score) > (highScore as bigint)) {
         writeSubmit({
-          address: CONTRACT_ADDRESS,
-          abi: FRUIT_SLASH_ABI,
-          functionName: "submitScore",
-          args: [BigInt(score)],
+          contracts: [
+            {
+              address: CONTRACT_ADDRESS,
+              abi: FRUIT_SLASH_ABI,
+              functionName: "submitScore",
+              args: [BigInt(score)],
+            },
+          ],
+          capabilities,
         });
       }
     },
-    [writeSubmit, highScore],
+    [writeSubmit, highScore, capabilities],
   );
 
   // --- Parse check-in data ---
@@ -155,7 +162,7 @@ export function useWallet() {
     isConnected,
     chain,
     highScore: highScore ? Number(highScore) : 0,
-    totalPlayers: totalPlayers ? Number(totalPlayers) : IS_DEMO ? 0 : 0,
+    totalPlayers: totalPlayers ? Number(totalPlayers) : 0,
     hasFruitNFT: IS_DEMO ? false : !!hasFruitNFT,
 
     doSlash,
